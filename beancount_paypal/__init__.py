@@ -28,7 +28,8 @@ class PaypalImporter(importer.ImporterProtocol):
         checking_account,
         commission_account,
         language=None,
-        metadata_map=None
+        metadata_map=None,
+        keep_empty_metadata=True
     ):
         if language is None:
             language = lang.en()
@@ -42,6 +43,7 @@ class PaypalImporter(importer.ImporterProtocol):
         self.commission_account = commission_account
         self.language = language
         self.metadata_map = metadata_map
+        self.keep_empty_metadata = keep_empty_metadata
 
     def file_account(self, _):
         return self.account
@@ -71,7 +73,8 @@ class PaypalImporter(importer.ImporterProtocol):
 
         with csv_open(filename.name) as rows:
             for index, row in enumerate(rows):
-                metadata = { k: row[v] for k, v in self.metadata_map.items() }
+                metadata = { k: row[v] for k, v in self.metadata_map.items()
+                        if self.keep_empty_metadata or row.get(v) }
                 row = self.language.normalize_keys(row)
 
                 # Disregard entries about invoices being sent. Merely sending
