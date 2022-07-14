@@ -6,6 +6,7 @@ class base():
     _txn_codes_from_checking = set(["T0300"])
     _txn_codes_to_checking = set(["T0400"])
     _txn_codes_currency_conversion = set(["T0200", "T0201", "T0202"])
+    _txn_codes_invoice_sent = set(["T7101"])
 
     def identify(self, fields):
         return all(elem in fields for elem in list(self.fields_map.keys())[:-5])  # last 5 keys are optional
@@ -21,6 +22,9 @@ class base():
 
     def txn_currency_conversion(self, row):
         return self._is_type(row, self._txn_codes_currency_conversion, self._currency_conversion)
+
+    def txn_invoice_sent(self, row):
+        return self._is_type(row, self._txn_codes_invoice_sent, self._invoice_sent)
 
     def decimal(self, data):
         return data
@@ -67,6 +71,7 @@ class en(base):
     _from_checking = "Bank Deposit to PP Account "
     _to_checking = "General Withdrawal - Bank Transfer"
     _currency_conversion = "General Currency Conversion"
+    _invoice_sent = "Invoice Sent"
 
     def decimal(self, data):
         return data.replace(".", "").replace(",", ".")
@@ -107,6 +112,7 @@ class de(base):
     _from_checking = "Bankgutschrift auf PayPal-Konto"
     _to_checking = "Allgemeine Abbuchung"
     _currency_conversion = "Allgemeine Währungsumrechnung"
+    _invoice_sent = "Rechnung gesendet"
 
     def decimal(self, data):
         return data.replace(".", "").replace(",", ".")

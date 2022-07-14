@@ -74,6 +74,12 @@ class PaypalImporter(importer.ImporterProtocol):
                 metadata = { k: row[v] for k, v in self.metadata_map.items() }
                 row = self.language.normalize_keys(row)
 
+                # Disregard entries about invoices being sent. Merely sending
+                # an invoice doesn't affect balances, only their payment does,
+                # which will show up in a separate row.
+                if self.language.txn_invoice_sent(row):
+                    continue
+
                 row['date'] = self.language.parse_date(row['date']).date()
                 row['gross'] = self.language.decimal(row['gross'])
                 row['fee'] = self.language.decimal(row['fee'])
