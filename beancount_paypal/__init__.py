@@ -159,6 +159,15 @@ class PaypalImporter(importer.ImporterProtocol):
                         last_currency = row['currency']
                         last_was_currency = True
 
+                elif row['to'] in self.email_address:
+                    txn.postings.append(
+                        data.Posting(
+                            self.account,
+                            amount.Amount(D(row['net']), row['currency']),
+                            None, None, None, None
+                        )
+                    )
+
                 else:
                     txn.postings.append(
                         data.Posting(
