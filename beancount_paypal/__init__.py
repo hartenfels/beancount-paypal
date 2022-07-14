@@ -29,7 +29,8 @@ class PaypalImporter(importer.ImporterProtocol):
         commission_account,
         language=None,
         metadata_map=None,
-        keep_empty_metadata=True
+        keep_empty_metadata=True,
+        categorize=None
     ):
         if language is None:
             language = lang.en()
@@ -44,6 +45,7 @@ class PaypalImporter(importer.ImporterProtocol):
         self.language = language
         self.metadata_map = metadata_map
         self.keep_empty_metadata = keep_empty_metadata
+        self.categorize = categorize
 
     def file_account(self, _):
         return self.account
@@ -63,6 +65,17 @@ class PaypalImporter(importer.ImporterProtocol):
             except StopIteration:
                 return False
 
+    def _categorize_payment(self, txn, raw_row, value, currency):
+        if self.categorize:
+            category = self.categorize(raw_row)
+            if category:
+                txn.postings.append(
+                    data.Posting(
+                        category,
+                        amount.Amount(-1*D(value), currency),
+                        None, None, None, None
+                    )
+                )
 
     def extract(self, filename):
         entries = []
@@ -72,16 +85,17 @@ class PaypalImporter(importer.ImporterProtocol):
         last_was_currency = False
 
         with csv_open(filename.name) as rows:
-            for index, row in enumerate(rows):
-                metadata = { k: row[v] for k, v in self.metadata_map.items()
-                        if self.keep_empty_metadata or row.get(v) }
-                row = self.language.normalize_keys(row)
+            for index, raw_row in enumerate(rows):
+                row = self.language.normalize_keys(raw_row)
 
                 # Disregard entries about invoices being sent. Merely sending
                 # an invoice doesn't affect balances, only their payment does,
                 # which will show up in a separate row.
                 if self.language.txn_invoice_sent(row):
                     continue
+
+                metadata = { k: raw_row[v] for k, v in self.metadata_map.items()
+                        if self.keep_empty_metadata or raw_row.get(v) }
 
                 row['date'] = self.language.parse_date(row['date']).date()
                 row['gross'] = self.language.decimal(row['gross'])
@@ -170,6 +184,7 @@ class PaypalImporter(importer.ImporterProtocol):
                             None, None, None, None
                         )
                     )
+                    self._categorize_payment(txn, raw_row, row['gross'], row['currency'])
 
                 else:
                     txn.postings.append(
@@ -179,6 +194,7 @@ class PaypalImporter(importer.ImporterProtocol):
                             None, None, None, None
                         )
                     )
+                    self._categorize_payment(txn, raw_row, row['net'], row['currency'])
 
                 if D(row['fee']) != 0:
                     txn.postings.append(
