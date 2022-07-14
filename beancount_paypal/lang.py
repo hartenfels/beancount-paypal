@@ -7,6 +7,9 @@ class base():
     def txn_from_checking(self, data):
         return data == self._from_checking
 
+    def txn_to_checking(self, data):
+        return data == self._to_checking
+
     def txn_currency_conversion(self, data):
         return data == self._currency_conversion
 
@@ -52,6 +55,7 @@ class en(base):
 
     _format = "%d/%m/%Y"
     _from_checking = "Bank Deposit to PP Account "
+    _to_checking = "General Withdrawal - Bank Transfer"
     _currency_conversion = "General Currency Conversion"
 
     def decimal(self, data):
@@ -90,6 +94,7 @@ class de(base):
 
     _format = "%d.%m.%Y"
     _from_checking = "Bankgutschrift auf PayPal-Konto"
+    _to_checking = "Allgemeine Abbuchung"
     _currency_conversion = "Allgemeine Währungsumrechnung"
 
     def decimal(self, data):
