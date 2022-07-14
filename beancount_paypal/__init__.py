@@ -36,7 +36,7 @@ class PaypalImporter(importer.ImporterProtocol):
         if metadata_map is None:
             metadata_map = language.metadata_map
 
-        self.email_address = email_address
+        self.email_address = set(email_address)
         self.account = account
         self.checking_account = checking_account
         self.commission_account = commission_account
@@ -54,7 +54,7 @@ class PaypalImporter(importer.ImporterProtocol):
                     return False
 
                 row = self.language.normalize_keys(row)
-                if not (row['from'] == self.email_address or row['to'] == self.email_address):
+                if not (row['from'] in self.email_address or row['to'] in self.email_address):
                     return False
 
                 return True
