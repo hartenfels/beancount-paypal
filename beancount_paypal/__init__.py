@@ -93,7 +93,7 @@ class PaypalImporter(importer.ImporterProtocol):
                         postings=[],
                     )
 
-                if self.language.txn_from_checking(row['txn_type']):
+                if self.language.txn_from_checking(row):
                     txn.postings.append(
                         data.Posting(
                             self.checking_account,
@@ -110,7 +110,7 @@ class PaypalImporter(importer.ImporterProtocol):
                         )
                     )
 
-                elif self.language.txn_to_checking(row['txn_type']):
+                elif self.language.txn_to_checking(row):
                     txn.postings.append(
                         data.Posting(
                             self.account,
@@ -127,7 +127,7 @@ class PaypalImporter(importer.ImporterProtocol):
                         )
                     )
 
-                elif self.language.txn_currency_conversion(row['txn_type']):
+                elif self.language.txn_currency_conversion(row):
                     if last_was_currency:
                         txn.postings.append(
                             data.Posting(

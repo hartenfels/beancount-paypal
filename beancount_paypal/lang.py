@@ -1,17 +1,26 @@
 from datetime import datetime
 
 class base():
+    # Paypal calls these "T-Codes", they identify a transaction type in a
+    # language-agnostic way. See their developer documentation for a list.
+    _txn_codes_from_checking = set(["T0300"])
+    _txn_codes_to_checking = set(["T0400"])
+    _txn_codes_currency_conversion = set(["T0200", "T0201", "T0202"])
+
     def identify(self, fields):
-        return all(elem in fields for elem in list(self.fields_map.keys())[:-4])  # last 4 keys are optional
+        return all(elem in fields for elem in list(self.fields_map.keys())[:-5])  # last 5 keys are optional
 
-    def txn_from_checking(self, data):
-        return data == self._from_checking
+    def _is_type(self, row, codes, title):
+        return row.get("txn_code") in codes or row["txn_type"] == title
 
-    def txn_to_checking(self, data):
-        return data == self._to_checking
+    def txn_from_checking(self, row):
+        return self._is_type(row, self._txn_codes_from_checking, self._from_checking)
 
-    def txn_currency_conversion(self, data):
-        return data == self._currency_conversion
+    def txn_to_checking(self, row):
+        return self._is_type(row, self._txn_codes_to_checking, self._to_checking)
+
+    def txn_currency_conversion(self, row):
+        return self._is_type(row, self._txn_codes_currency_conversion, self._currency_conversion)
 
     def decimal(self, data):
         return data
@@ -45,6 +54,7 @@ class en(base):
         "Subject": "subject",
         "Note": "note",
         "Balance": "balance",
+        "Transaction Event Code": "txn_code",
     }
 
     metadata_map = {
@@ -84,6 +94,7 @@ class de(base):
         "Betreff": "subject",
         "Hinweis": "note",
         "Guthaben": "balance",
+        "Transaktionsereigniscode": "txn_code",
     }
 
     metadata_map = {
