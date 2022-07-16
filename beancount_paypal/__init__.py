@@ -62,7 +62,7 @@ class PaypalImporter(importer.ImporterProtocol):
                     return False
 
                 return True
-            except StopIteration:
+            except (StopIteration, UnicodeDecodeError):
                 return False
 
     def _categorize_payment(self, txn, raw_row, value, currency):
